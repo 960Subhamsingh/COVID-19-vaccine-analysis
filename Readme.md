@@ -4,4 +4,4 @@
 
 ## Covid Data analysis with  Pandas
 
-[Covid Data analysis with Mysql](<./Indain covid Analysis/d>)
+[Covid Data analysis with India](<./Indain covid Analysis/d>)
