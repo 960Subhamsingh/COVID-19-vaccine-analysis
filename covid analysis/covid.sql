@@ -7,7 +7,6 @@ use covid19;
 -- show table in exitsing of covid19 databases
 show tables;
 -- select all the row and column in covid existing table
-
 SELECT 
     *
 FROM
@@ -17,12 +16,11 @@ FROM
 SELECT 
     COUNT(*), location
 FROM
-    Covid
+    covid
 GROUP BY location;  
  
 -- Select Data that we are going to be starting with
 SELECT 
-	count(*),
     Location,
     date,
     total_cases,
@@ -30,7 +28,7 @@ SELECT
     total_deaths,
     population
 FROM
-    Covid
+    covid
 WHERE
     continent IS NOT NULL
 ORDER BY 1 , 2;
@@ -43,71 +41,99 @@ SELECT
     date,
     total_cases,
     total_deaths,
-    ROUND((total_deaths / total_cases) * 100) AS DeathPercentage
+    ROUND((total_deaths / total_cases) * 100) AS Death_percentage
 FROM
-    Covid
+    covid
 WHERE
     location LIKE '%Somalia%'
         AND continent IS NOT NULL
 ORDER BY 1 , 2;
 
+-- Looking at total cases vs total deaths of location  'Trinidad and Tobago'
+
+SELECT 
+    location,
+    date,
+    total_cases,
+    total_deaths,
+    new_cases,
+    concat(round((total_deaths / total_cases)*100,2) ,'%') AS Death_Percenatge
+FROM
+    covid
+WHERE
+    location LIKE '%Trinidad and Tobago'
+ORDER BY 1 , 2;
+
  -- Remove the date from our filter so we can see the totals
-SELECT SUM(new_cases) as total_cases, SUM(CAST(new_deaths as int)) as total_deaths, SUM(CAST(new_deaths as int))/SUM(new_cases)*100 as DeathPercentage
-FROM covidproject.deaths
-WHERE continent is not NULL
-ORDER by 1,2;
+ 
+SELECT 
+    SUM(new_cases) AS total_cases,
+    SUM(CAST(new_deaths AS SIGNED)) AS total_deaths,
+    concat(round(SUM(CAST(new_deaths AS SIGNED)) / SUM(new_cases) * 100,2) ,'%' )AS DeathPercentage
+FROM
+    covid
+WHERE
+    continent IS NOT NULL
+ORDER BY 1 , 2;
+
 -- Countries with Highest Infection Rate compared to Population
 
-Select location , population, MAX(total_cases) as Highest_Infectio,
- Max((total_cases/population))*100 as Infected_people from covid
- group by location , population  order by Infected_people ;
+SELECT 
+    location,
+    population,
+    MAX(total_cases) AS Highest_Infection,
+    concat(round(MAX((total_cases / population)) * 100,2), '%') AS Infected_people
+FROM
+    covid
+GROUP BY location , population
+ORDER BY Infected_people;
  
  -- Countries with Highest Death Count per Population
 
-Select Location, MAX(cast(Total_deaths as int)) as TotalDeathCount
-From  covid 
---Where location like '%states%'
+Select Location, MAX(cast(Total_deaths as signed)) as Totaldeathcount
+From  covid
+-- Where location like '%states%'
 Where continent is not null 
 Group by location
-order by TotalDeathCount desc
-
+order by TotalDeathCount desc;
 
 -- BREAKING THINGS DOWN BY CONTINENT
 
 -- Showing contintents with the highest death count per population
-
-Select continent, MAX(cast(Total_deaths as int)) as TotalDeathCount
-From PortfolioProject..CovidDeaths
---Where location like '%states%'
-Where continent is not null 
-Group by continent
-order by TotalDeathCount desc
-
-
+SELECT 
+    continent,
+    MAX(CAST(Total_deaths AS SIGNED)) AS Totaldeathcount
+FROM
+    covid
+WHERE
+    continent IS NOT NULL
+GROUP BY continent
+ORDER BY TotalDeathCount DESC;
 
 -- GLOBAL NUMBERS
 
-Select SUM(new_cases) as total_cases, SUM(cast(new_deaths as int)) as total_deaths, SUM(cast(new_deaths as int))/SUM(New_Cases)*100 as DeathPercentage
-From PortfolioProject..CovidDeaths
---Where location like '%states%'
-where continent is not null 
---Group By date
-order by 1,2
-
-
+SELECT 
+    SUM(new_cases) AS total_cases,
+    SUM(CAST(new_deaths AS SIGNED)) AS total_deaths,
+    concat(ROUND(SUM(CAST(new_deaths AS SIGNED)) / SUM(New_Cases) * 100,2),'%') AS DeathPercentage
+FROM
+    Covid
+WHERE
+    continent IS NOT NULL
+ORDER BY 1 , 2;
 
 -- Total Population vs Vaccinations
 -- Shows Percentage of Population that has recieved at least one Covid Vaccine
 
-Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
-, SUM(CONVERT(int,vac.new_vaccinations)) OVER (Partition by dea.Location Order by dea.location, dea.Date) as RollingPeopleVaccinated
---, (RollingPeopleVaccinated/population)*100
-From PortfolioProject..CovidDeaths dea
-Join PortfolioProject..CovidVaccinations vac
-	On dea.location = vac.location
-	and dea.date = vac.date
-where dea.continent is not null 
-order by 2,3
+Select continent, location, date, population, new_vaccinations
+, SUM(CONVERT(int, new_vaccinations)) OVER (Partition by dea.Location Order by dea.location, dea.Date) as RollingPeopleVaccinated
+,(RollingPeopleVaccinated/population)*100
+From covid;
+-- Join PortfolioProject..CovidVaccinations vac
+-- 	On dea.location = vac.location
+-- 	and dea.date = vac.date
+-- where dea.continent is not null 
+-- order by 2,3;
 
 
 -- Using CTE to perform Calculation on Partition By in previous query
@@ -168,4 +194,26 @@ From PortfolioProject..CovidDeaths dea
 Join PortfolioProject..CovidVaccinations vac
 	On dea.location = vac.location
 	and dea.date = vac.date
-where dea.continent is not null 
+where dea.continent is not null ;
+
+
+select location, date, total_cases, total_deaths, new_cases, population from covid order by 6;
+
+
+SELECT 
+    location,
+    date,
+    total_cases,
+    total_deaths,
+    CONCAT(ROUND((total_deaths / total_cases) * 100, 2),
+            '%') AS DeathPercentage
+FROM
+    covid
+WHERE
+    location LIKE '%States%'
+        AND continent IS NOT NULL
+ORDER BY 2 DESC;
+
+ 
+ 
+ 
